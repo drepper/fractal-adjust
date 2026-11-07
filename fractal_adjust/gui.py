@@ -467,6 +467,13 @@ class MainWindow(Adw.ApplicationWindow):
         self._device_group = Adw.PreferencesGroup(title="Connected devices")
         page.add(self._device_group)
         self._device_rows: list[Adw.ActionRow] = []
+        group = Adw.PreferencesGroup(title="Startup")
+        self._minimized_row = Adw.SwitchRow(title="Start minimized",
+                                            subtitle="Takes effect at the next start; --minimized and "
+                                                     "--no-minimized override it")
+        self._minimized_row.connect("notify::active", lambda *_: self._dirty_changed())
+        group.add(self._minimized_row)
+        page.add(group)
         group = Adw.PreferencesGroup(title="Remote control")
         self._mqtt_row = Adw.ActionRow(title="MQTT", subtitle="disabled in the configuration file",
                                        subtitle_selectable=True)
@@ -564,7 +571,13 @@ class MainWindow(Adw.ApplicationWindow):
         return config.Config(light_on=self._light_row.get_active(), effect=self._effect.get(),
                              boot=self._boot.get(),
                              fan_curves={p: list(e.points) for p, e in self._curves.items()},
-                             mqtt=copy.copy(self._saved.mqtt))
+                             mqtt=copy.copy(self._saved.mqtt),
+                             gui=config.GuiSettings(minimized=self._minimized_row.get_active()))
+
+    @property
+    def start_minimized(self) -> bool:
+        """The [gui] minimized setting of the configuration file the window was started with."""
+        return self._saved.gui.minimized
 
     def _show_config(self, cfg: config.Config) -> None:
         self._loading = True
@@ -572,6 +585,7 @@ class MainWindow(Adw.ApplicationWindow):
             self._light_row.set_active(cfg.light_on)
             self._effect.set(cfg.effect)
             self._boot.set(cfg.boot)
+            self._minimized_row.set_active(cfg.gui.minimized)
             for port, editor in self._curves.items():
                 editor.set_points(cfg.fan_curves.get(port, [(0, 0), (100, 100)]))
         finally:
@@ -743,7 +757,7 @@ def run(args: argparse.Namespace) -> int:
     def activate(application: Adw.Application) -> None:
         _install_icon()
         window = MainWindow(application, args)
-        if args.minimized:
+        if args.minimized if args.minimized is not None else window.start_minimized:
             # Minimizing before the window is mapped is ignored, so do it on the first map.
             def minimize(_w: Gtk.Window) -> None:
                 window.disconnect(handler)

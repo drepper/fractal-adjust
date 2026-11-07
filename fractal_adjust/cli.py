@@ -258,11 +258,12 @@ def _gui_options(parser: argparse.ArgumentParser, inherit: bool = False) -> None
     With @p inherit the options default to "not given", so the subcommand does not reset
     values set before it.
     """
-    default: Any = argparse.SUPPRESS if inherit else False
-    parser.add_argument("--no-apply", action="store_true", default=default,
+    parser.add_argument("--no-apply", action="store_true", default=argparse.SUPPRESS if inherit else False,
                         help="GUI: do not apply the configuration on startup")
-    parser.add_argument("--minimized", action="store_true", default=default,
-                        help="GUI: start with the window minimized")
+    parser.add_argument("--minimized", action=argparse.BooleanOptionalAction,
+                        default=argparse.SUPPRESS if inherit else None,
+                        help="GUI: start with the window minimized, or not (default: [gui] minimized "
+                             "in the configuration file)")
 
 
 def build_parser(parser_class: type[argparse.ArgumentParser] = argparse.ArgumentParser) -> argparse.ArgumentParser:

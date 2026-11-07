@@ -425,16 +425,32 @@ def test_default_command_is_gui() -> None:
     assert args.func is cli.cmd_gui
 
 
-@pytest.mark.parametrize("argv", [["--minimized"], ["gui", "--minimized"], ["--minimized", "gui"]])
-def test_minimized_option(argv: list[str]) -> None:
+@pytest.mark.parametrize("argv, expected", [
+    (["--minimized"], True), (["gui", "--minimized"], True), (["--minimized", "gui"], True),
+    (["--no-minimized"], False), (["--minimized", "gui", "--no-minimized"], False),
+    ([], None), (["gui"], None),
+])
+def test_minimized_option(argv: list[str], expected: bool | None) -> None:
     args = cli.build_parser().parse_args(argv)
-    assert args.func is cli.cmd_gui and args.minimized and not args.no_apply
+    assert args.func is cli.cmd_gui and args.minimized is expected and not args.no_apply
 
 
 def test_gui_option_defaults() -> None:
-    args = cli.build_parser().parse_args(["gui"])
-    assert not args.minimized and not args.no_apply
+    assert not cli.build_parser().parse_args(["gui"]).no_apply
     assert cli.build_parser().parse_args(["--no-apply", "gui"]).no_apply
+
+
+def test_gui_config(tmp_path: Path) -> None:
+    assert config.defaults().gui.minimized is False
+    path = tmp_path / "c.toml"
+    path.write_text("[gui]\nminimized = true\n")
+    cfg = config.load(path)
+    assert cfg.gui.minimized
+    assert config.load(config.save(cfg, tmp_path / "out.toml")).gui.minimized
+    for bad in ("[gui]\nminimized = 1\n", "[gui]\nminimised = true\n"):
+        path.write_text(bad)
+        with pytest.raises(config.ConfigError):
+            config.load(path)
 
 
 # MQTT requests (JSON) and timed effects.

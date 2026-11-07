@@ -47,6 +47,13 @@ class MqttSettings:
 
 
 @dataclasses.dataclass(slots=True)
+class GuiSettings:
+    """Behaviour of the graphical interface."""
+
+    minimized: bool = False
+
+
+@dataclasses.dataclass(slots=True)
 class Config:
     """All settings the configuration file can hold."""
 
@@ -55,6 +62,7 @@ class Config:
     boot: EffectSettings
     fan_curves: dict[int, Curve]
     mqtt: MqttSettings = dataclasses.field(default_factory=MqttSettings)
+    gui: GuiSettings = dataclasses.field(default_factory=GuiSettings)
 
 
 def _absolute(value: str) -> Path | None:
@@ -149,6 +157,19 @@ def _curve(value: Any, where: str) -> Curve:
     return points
 
 
+def _gui(table: Any) -> GuiSettings:
+    """Parse the [gui] table."""
+    if not isinstance(table, dict):
+        raise ConfigError("[gui] must be a table")
+    unknown = set(table) - {f.name for f in dataclasses.fields(GuiSettings)}
+    if unknown:
+        raise ConfigError(f"gui: unknown keys {', '.join(sorted(unknown))}")
+    settings = GuiSettings()
+    if "minimized" in table:
+        settings.minimized = _get(table, "minimized", bool, "gui")
+    return settings
+
+
 def _mqtt(table: Any) -> MqttSettings:
     """Parse the [mqtt] table."""
     if not isinstance(table, dict):
@@ -189,7 +210,8 @@ def parse(data: dict[str, Any]) -> Config:
                   effect=_effect(lighting.get("effect"), "lighting.effect", REGULAR_MODES),
                   boot=_effect(lighting.get("boot"), "lighting.boot", BOOT_MODES),
                   fan_curves=dict(sorted(curves.items())),
-                  mqtt=_mqtt(data.get("mqtt", {})))
+                  mqtt=_mqtt(data.get("mqtt", {})),
+                  gui=_gui(data.get("gui", {})))
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -273,6 +295,10 @@ def dump(cfg: Config) -> str:
         "# enabled is true.",
         "[mqtt]",
         *(f"{f.name} = {_toml_scalar(getattr(cfg.mqtt, f.name))}" for f in dataclasses.fields(MqttSettings)),
+        "",
+        "# GUI: minimized starts the window minimized (--minimized / --no-minimized override it).",
+        "[gui]",
+        f"minimized = {_toml_scalar(cfg.gui.minimized)}",
     ]
     return "\n".join(lines) + "\n"
 

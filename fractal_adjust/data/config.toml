@@ -54,3 +54,9 @@ password = ""
 tls = false
 client_id = ""
 keepalive = 60
+
+# Graphical interface.
+#   minimized: start with the window minimized; the command line options --minimized
+#              and --no-minimized override this for one start.
+[gui]
+minimized = false

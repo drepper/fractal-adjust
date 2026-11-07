@@ -78,8 +78,12 @@ sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=hidraw
 ### GUI
 
 ```
-fractal-adjust [--minimized] [--no-apply]
+fractal-adjust [--minimized | --no-minimized] [--no-apply]
 ```
+
+Whether the window starts minimized is set by `[gui] minimized` in the configuration file
+(or the **Start minimized** switch on the Device page). `--minimized` and `--no-minimized`
+override it for one start.
 
 On startup the GUI finds the hub and applies the configuration file. The window has three
 pages:
@@ -91,7 +95,8 @@ pages:
 - **Fans:** one curve per port. Drag a point to move it, double-click to add one and
   right-click to remove one. The dashed line marks the motherboard's current duty.
   **Store on hub** writes the curves.
-- **Device:** firmware, serial number, connected devices and the MQTT connection state.
+- **Device:** firmware, serial number, connected devices, the **Start minimized** setting and the
+  MQTT connection state.
 
 **Save** writes the settings shown in the window to `$XDG_CONFIG_HOME/fractal-adjust/config.toml`
 (normally `~/.config/fractal-adjust/config.toml`).
@@ -176,6 +181,9 @@ port1 = [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]
 enabled = false
 host = "localhost"
 topic = "fractal_adjust"
+
+[gui]
+minimized = false              # start the window minimized
 ```
 
 `fractal-adjust config` prints the effective configuration. Because the file can contain an
