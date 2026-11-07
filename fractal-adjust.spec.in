@@ -57,7 +57,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{app_id}.desktop
 %pytest
 
 %files -f %{pyproject_files}
-%doc PROTOCOL.md MQTT.md
+%doc README.md PROTOCOL.md MQTT.md
 %{_bindir}/%{name}
 %dir %{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/%{name}/config.toml
