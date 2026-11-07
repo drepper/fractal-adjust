@@ -1,7 +1,7 @@
 # Template for the RPM spec file; "make spec" renders it with tools/gen-spec.py, which fills
 # the placeholders from their single sources.  Do not repeat those values here.  The release
 # number exists only in the baserelease line below.
-%global baserelease 3
+%global baserelease 1
 %global app_id @APP_ID@
 %global module @MODULE@
 
@@ -68,6 +68,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{app_id}.desktop
 
 %changelog
 * Sat Nov 07 2026 @PACKAGER@ - @VERSION@-@RELEASE@
+- Start-minimized setting in the configuration file and the GUI, --no-minimized option
+
+* Sat Nov 07 2026 @PACKAGER@ - 0.2.0-3
 - JSON format for MQTT requests and replies
 - Configuration files follow the XDG Base Directory specification; the system-wide
   file moves to /etc/xdg/fractal-adjust/config.toml
