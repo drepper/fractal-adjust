@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Fractal Adjust
+GenericName=Fan and RGB Hub Control
+Comment=Control fans and lighting of the Fractal Adjust Pro Hub
+Exec=fractal-adjust
+# Icon= is set to the application ID by desktop-file-install when the package is built.
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=fan;rgb;argb;led;fractal;hub;
+StartupNotify=true

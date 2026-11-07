@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fractal-adjust"
+dynamic = ["version"]
+description = "Control the Fractal Adjust Pro fan and RGB hub on Linux"
+requires-python = ">=3.14"
+license = "CC-BY-NC-ND-4.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Ulrich Drepper", email = "drepper@akkadia.org" }]
+dependencies = ["PyGObject>=3.50", "pycairo", "paho-mqtt>=2"]
+
+[project.scripts]
+fractal-adjust = "fractal_adjust.cli:main"
+
+[tool.setuptools]
+packages = ["fractal_adjust"]
+
+[tool.setuptools.package-data]
+fractal_adjust = ["data/*.toml", "data/*.svg"]
+
+[tool.setuptools.dynamic]
+version = { attr = "fractal_adjust.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.pyright]
+pythonVersion = "3.14"
+include = ["fractal_adjust", "tests"]
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["gi", "gi.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["fractal_adjust.gui"]
+disallow_subclassing_any = false
+warn_return_any = false

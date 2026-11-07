@@ -1,0 +1,11 @@
+# Build products; fractal-adjust.spec is generated from fractal-adjust.spec.in.
+/fractal-adjust.spec
+/fractal-adjust.spec.tmp
+/fractal-adjust-*.tar.gz
+/fractal-adjust-*.src.rpm
+/rpms/
+/build/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+.mypy_cache/

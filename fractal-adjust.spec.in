@@ -1,0 +1,75 @@
+# Template for the RPM spec file; "make spec" renders it with tools/gen-spec.py, which fills
+# the placeholders from their single sources.  Do not repeat those values here.  The release
+# number exists only in the baserelease line below.
+%global baserelease 2
+%global app_id @APP_ID@
+%global module @MODULE@
+
+Name:           @NAME@
+Version:        @VERSION@
+Release:        %{baserelease}%{?dist}
+Summary:        @SUMMARY@
+
+License:        @LICENSE@
+Source0:        %{name}-%{version}.tar.gz
+
+BuildArch:      noarch
+BuildRequires:  python3-devel
+BuildRequires:  python3-pytest
+BuildRequires:  systemd-rpm-macros
+BuildRequires:  desktop-file-utils
+
+# Python dependencies are generated from pyproject.toml.  GTK and libadwaita are loaded
+# through GObject introspection; their typelibs have no virtual provides, so the libraries
+# are named directly.
+Requires:       gtk4
+Requires:       libadwaita
+
+%description
+%{name} controls the Fractal Adjust Pro Hub (USB 36bc:1001) through
+Linux hidraw: fan curves, lighting effects (designed locally and uploaded to
+the hub), LED on/off and device information.  It has a GTK 4 interface, which
+starts by default, and a command line interface.  While the GUI runs it can
+serve the same commands as MQTT requests.  Settings are kept in a TOML
+configuration file and applied whenever the program starts.
+
+%prep
+%autosetup
+
+%generate_buildrequires
+%pyproject_buildrequires
+
+%build
+%pyproject_wheel
+
+%install
+%pyproject_install
+%pyproject_save_files -l %{module}
+install -Dpm 0644 %{module}/data/config.toml %{buildroot}%{_sysconfdir}/%{name}/config.toml
+install -Dpm 0644 data/70-%{name}.rules %{buildroot}%{_udevrulesdir}/70-%{name}.rules
+install -Dpm 0644 %{module}/data/icon.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications --set-icon=%{app_id} data/%{name}.desktop
+mv %{buildroot}%{_datadir}/applications/%{name}.desktop %{buildroot}%{_datadir}/applications/%{app_id}.desktop
+install -Dpm 0644 data/%{name}.service %{buildroot}%{_userunitdir}/%{name}.service
+
+%check
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{app_id}.desktop
+%pytest
+
+%files -f %{pyproject_files}
+%doc PROTOCOL.md MQTT.md
+%{_bindir}/%{name}
+%dir %{_sysconfdir}/%{name}
+%config(noreplace) %{_sysconfdir}/%{name}/config.toml
+%{_udevrulesdir}/70-%{name}.rules
+%{_datadir}/applications/%{app_id}.desktop
+%{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
+%{_userunitdir}/%{name}.service
+
+%changelog
+* Sat Nov 07 2026 @PACKAGER@ - @VERSION@-@RELEASE@
+- Application icon
+
+* Sat Nov 07 2026 @PACKAGER@ - 0.2.0-1
+- Effect design and upload (including blink and timed effects), GTK interface
+  (optionally started minimized), configuration file, MQTT requests in GUI mode

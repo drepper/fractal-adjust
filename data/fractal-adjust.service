@@ -1,0 +1,9 @@
+[Unit]
+Description=Apply the Fractal Adjust Pro Hub settings
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/fractal-adjust apply
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,55 @@
+# Settings for the Fractal Adjust Pro Hub.  fractal-adjust applies them when it starts.
+#
+# This packaged copy holds the defaults.  /etc/fractal-adjust/config.toml and then
+# ~/.config/fractal-adjust/config.toml (written by the GUI's Save button) override
+# individual keys; anything they leave out falls back to the values below.
+
+[lighting]
+# Switch the LEDs of all devices connected to the hub on (true) or off (false).
+on = true
+
+# Effect while the system runs.
+#   mode:       off, still, breathe, blink, shift, two-color-fade, lava-lamp, wave-ripple
+#               (blink switches between the color and black three times a second)
+#   speed:      0-100 (ignored by off, still and blink)
+#   brightness: 0-100
+#   colors:     "#rrggbb" values; still and blink use 1, breathe/two-color-fade/wave-ripple 2,
+#               shift/lava-lamp 6
+# wave-ripple additionally accepts up_wave, top_wave, down_wave (LEDs, 0-50) and
+# frequency (0-100).
+[lighting.effect]
+mode = "shift"
+speed = 40
+brightness = 100
+colors = ["#0074c5", "#6e00fa", "#00faeb", "#c940bd", "#95fde4", "#00f03c"]
+
+# Effect shown at power-up, before the regular effect starts.
+#   mode: meshify, fade-in, instant
+[lighting.boot]
+mode = "meshify"
+brightness = 100
+colors = ["#ffffff"]
+
+# Fan curves per hub port: [motherboard PWM duty %, fan duty %] pairs.  The first x must
+# be 0, the last 100, and x must increase.
+[fans]
+port1 = [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]
+port2 = [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]
+port3 = [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]
+port4 = [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]
+
+# MQTT: messages published to <topic> are command lines like those of the CLI, e.g.
+# "light off", "status" or "effect blink #ff0000 --timeout 30".  The output goes to
+# reply_topic (empty: "<topic>/reply").  Requests never change this file.
+# Requests are served while the GUI runs and enabled is true.
+[mqtt]
+enabled = false
+host = "localhost"
+port = 1883
+topic = "fractal_adjust"
+reply_topic = ""
+username = ""
+password = ""
+tls = false
+client_id = ""
+keepalive = 60

@@ -1,0 +1,3 @@
+# Fractal Adjust Pro Hub: give the active local user access to the hidraw node.
+# Install into /etc/udev/rules.d/; the number must stay below 73 for uaccess to apply.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="36bc", ATTRS{idProduct}=="1001|1002", TAG+="uaccess"

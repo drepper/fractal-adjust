@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <title>Fractal Adjust</title>
+  <!-- Generated design: hub body, ARGB ring in the "Northern lights" colors, fan. -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#43474f"/>
+      <stop offset="1" stop-color="#1c1e23"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6f7f9"/>
+      <stop offset="1" stop-color="#a9afb8"/>
+    </linearGradient>
+    <radialGradient id="hub" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#5a5f69"/>
+      <stop offset="1" stop-color="#25282e"/>
+    </radialGradient>
+    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="3.2"/>
+    </filter>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="0.6"/>
+    </filter>
+    <g id="ring" fill="none">
+    <circle cx="64" cy="64" r="41" stroke="#0074c5" stroke-dasharray="4.18 257.61" transform="rotate(-90.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#096ac9" stroke-dasharray="4.18 257.61" transform="rotate(-85.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#1261ce" stroke-dasharray="4.18 257.61" transform="rotate(-80.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#1c57d2" stroke-dasharray="4.18 257.61" transform="rotate(-75.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#254dd7" stroke-dasharray="4.18 257.61" transform="rotate(-70.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#2e44db" stroke-dasharray="4.18 257.61" transform="rotate(-65.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#373ae0" stroke-dasharray="4.18 257.61" transform="rotate(-60.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#4030e4" stroke-dasharray="4.18 257.61" transform="rotate(-55.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#4927e8" stroke-dasharray="4.18 257.61" transform="rotate(-50.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#521ded" stroke-dasharray="4.18 257.61" transform="rotate(-45.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#5c13f1" stroke-dasharray="4.18 257.61" transform="rotate(-40.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#650af6" stroke-dasharray="4.18 257.61" transform="rotate(-35.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#6e00fa" stroke-dasharray="4.18 257.61" transform="rotate(-30.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#7605f5" stroke-dasharray="4.18 257.61" transform="rotate(-25.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#7d0bf0" stroke-dasharray="4.18 257.61" transform="rotate(-20.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#8510eb" stroke-dasharray="4.18 257.61" transform="rotate(-15.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#8c15e6" stroke-dasharray="4.18 257.61" transform="rotate(-10.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#941be1" stroke-dasharray="4.18 257.61" transform="rotate(-5.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#9c20dc" stroke-dasharray="4.18 257.61" transform="rotate(0.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#a325d6" stroke-dasharray="4.18 257.61" transform="rotate(5.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#ab2bd1" stroke-dasharray="4.18 257.61" transform="rotate(10.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#b230cc" stroke-dasharray="4.18 257.61" transform="rotate(15.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#ba35c7" stroke-dasharray="4.18 257.61" transform="rotate(20.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#c13bc2" stroke-dasharray="4.18 257.61" transform="rotate(25.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#c940bd" stroke-dasharray="4.18 257.61" transform="rotate(30.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#b84fc1" stroke-dasharray="4.18 257.61" transform="rotate(35.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#a85fc5" stroke-dasharray="4.18 257.61" transform="rotate(40.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#976ec8" stroke-dasharray="4.18 257.61" transform="rotate(45.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#867ecc" stroke-dasharray="4.18 257.61" transform="rotate(50.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#758ed0" stroke-dasharray="4.18 257.61" transform="rotate(55.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#649dd4" stroke-dasharray="4.18 257.61" transform="rotate(60.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#54add8" stroke-dasharray="4.18 257.61" transform="rotate(65.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#43bcdc" stroke-dasharray="4.18 257.61" transform="rotate(70.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#32cce0" stroke-dasharray="4.18 257.61" transform="rotate(75.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#22dbe3" stroke-dasharray="4.18 257.61" transform="rotate(80.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#11eae7" stroke-dasharray="4.18 257.61" transform="rotate(85.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00faeb" stroke-dasharray="4.18 257.61" transform="rotate(90.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#0cfaea" stroke-dasharray="4.18 257.61" transform="rotate(95.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#19faea" stroke-dasharray="4.18 257.61" transform="rotate(100.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#25fbe9" stroke-dasharray="4.18 257.61" transform="rotate(105.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#32fbe9" stroke-dasharray="4.18 257.61" transform="rotate(110.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#3efbe8" stroke-dasharray="4.18 257.61" transform="rotate(115.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#4afce8" stroke-dasharray="4.18 257.61" transform="rotate(120.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#57fce7" stroke-dasharray="4.18 257.61" transform="rotate(125.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#63fce6" stroke-dasharray="4.18 257.61" transform="rotate(130.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#70fce6" stroke-dasharray="4.18 257.61" transform="rotate(135.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#7cfce5" stroke-dasharray="4.18 257.61" transform="rotate(140.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#89fde5" stroke-dasharray="4.18 257.61" transform="rotate(145.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#95fde4" stroke-dasharray="4.18 257.61" transform="rotate(150.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#89fcd6" stroke-dasharray="4.18 257.61" transform="rotate(155.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#7cfbc8" stroke-dasharray="4.18 257.61" transform="rotate(160.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#70faba" stroke-dasharray="4.18 257.61" transform="rotate(165.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#63f9ac" stroke-dasharray="4.18 257.61" transform="rotate(170.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#57f89e" stroke-dasharray="4.18 257.61" transform="rotate(175.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#4af690" stroke-dasharray="4.18 257.61" transform="rotate(180.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#3ef582" stroke-dasharray="4.18 257.61" transform="rotate(185.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#32f474" stroke-dasharray="4.18 257.61" transform="rotate(190.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#25f366" stroke-dasharray="4.18 257.61" transform="rotate(195.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#19f258" stroke-dasharray="4.18 257.61" transform="rotate(200.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#0cf14a" stroke-dasharray="4.18 257.61" transform="rotate(205.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00f03c" stroke-dasharray="4.18 257.61" transform="rotate(210.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00e647" stroke-dasharray="4.18 257.61" transform="rotate(215.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00db53" stroke-dasharray="4.18 257.61" transform="rotate(220.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00d15e" stroke-dasharray="4.18 257.61" transform="rotate(225.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00c76a" stroke-dasharray="4.18 257.61" transform="rotate(230.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00bc75" stroke-dasharray="4.18 257.61" transform="rotate(235.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00b280" stroke-dasharray="4.18 257.61" transform="rotate(240.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#00a88c" stroke-dasharray="4.18 257.61" transform="rotate(245.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#009d97" stroke-dasharray="4.18 257.61" transform="rotate(250.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#0093a3" stroke-dasharray="4.18 257.61" transform="rotate(255.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#0089ae" stroke-dasharray="4.18 257.61" transform="rotate(260.0 64 64)"/>
+    <circle cx="64" cy="64" r="41" stroke="#007eba" stroke-dasharray="4.18 257.61" transform="rotate(265.0 64 64)"/>
+    </g>
+  </defs>
+  <rect x="8" y="10" width="112" height="112" rx="26" fill="#000" opacity="0.25"/>
+  <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#body)"/>
+  <rect x="8.75" y="8.75" width="110.5" height="110.5" rx="25.25" fill="none" stroke="#fff" stroke-opacity="0.12" stroke-width="1.5"/>
+  <use href="#ring" stroke-width="11" filter="url(#glow)" opacity="0.8"/>
+  <use href="#ring" stroke-width="6.5" filter="url(#soft)"/>
+  <circle cx="64" cy="64" r="35.5" fill="#16181c"/>
+  <g transform="translate(64 64) scale(0.84) translate(-64 -64)">
+    <g fill="url(#blade)" stroke="#6b717b" stroke-width="0.7" stroke-linejoin="round">
+      <path d="M66.5,54.5 C71,44 82,36 80,27.5 C74,22.5 59.5,29 57,42 C56,47.5 58.5,52.5 61.5,55 Z" transform="rotate(0.000 64 64)"/>
+      <path d="M66.5,54.5 C71,44 82,36 80,27.5 C74,22.5 59.5,29 57,42 C56,47.5 58.5,52.5 61.5,55 Z" transform="rotate(51.429 64 64)"/>
+      <path d="M66.5,54.5 C71,44 82,36 80,27.5 C74,22.5 59.5,29 57,42 C56,47.5 58.5,52.5 61.5,55 Z" transform="rotate(102.857 64 64)"/>
+      <path d="M66.5,54.5 C71,44 82,36 80,27.5 C74,22.5 59.5,29 57,42 C56,47.5 58.5,52.5 61.5,55 Z" transform="rotate(154.286 64 64)"/>
+      <path d="M66.5,54.5 C71,44 82,36 80,27.5 C74,22.5 59.5,29 57,42 C56,47.5 58.5,52.5 61.5,55 Z" transform="rotate(205.714 64 64)"/>
+      <path d="M66.5,54.5 C71,44 82,36 80,27.5 C74,22.5 59.5,29 57,42 C56,47.5 58.5,52.5 61.5,55 Z" transform="rotate(257.143 64 64)"/>
+      <path d="M66.5,54.5 C71,44 82,36 80,27.5 C74,22.5 59.5,29 57,42 C56,47.5 58.5,52.5 61.5,55 Z" transform="rotate(308.571 64 64)"/>
+    </g>
+    <circle cx="64" cy="64" r="10.5" fill="url(#hub)" stroke="#8d939d" stroke-width="1.2"/>
+    <circle cx="64" cy="64" r="3.2" fill="#0074c5"/>
+  </g>
+</svg>
