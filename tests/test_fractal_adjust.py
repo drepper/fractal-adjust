@@ -40,6 +40,14 @@ CAPTURED: dict[bytes, str] = {
                              " 95 fd e4 00 f0 3c 32",
     bytes.fromhex("a40500"): "a4 05 00 00 00 00 00 00 00 00 08 03 64 ff ff ff 32",
 }
+@pytest.fixture(autouse=True)
+def isolated_xdg(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep every test away from the real user and system configuration files."""
+    base = tmp_path_factory.mktemp("xdg")
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(base / "home"))
+    monkeypatch.setenv("XDG_CONFIG_DIRS", str(base / "sys"))
+
+
 NORTHERN_LIGHTS = EffectSettings("shift", speed=40, brightness=100, colors=list(DEFAULT_PALETTE))
 WHITE_MESHIFY = EffectSettings("meshify", brightness=100, colors=[(255, 255, 255)])
 
@@ -316,6 +324,48 @@ def test_invalid_config(tmp_path: Path, text: str) -> None:
     path.write_text(text)
     with pytest.raises(config.ConfigError):
         config.load(path)
+
+
+def test_xdg_user_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "cfg"))
+    assert config.user_config_path() == tmp_path / "cfg" / "fractal-adjust" / "config.toml"
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    for invalid in ("", "relative/dir"):
+        monkeypatch.setenv("XDG_CONFIG_HOME", invalid)
+        assert config.user_config_path() == tmp_path / "home" / ".config" / "fractal-adjust" / "config.toml"
+    monkeypatch.delenv("XDG_CONFIG_HOME")
+    assert config.user_config_path() == tmp_path / "home" / ".config" / "fractal-adjust" / "config.toml"
+
+
+def test_xdg_system_paths(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_DIRS", "/a:relative::/b/c")
+    assert config.system_config_paths() == [Path("/a/fractal-adjust/config.toml"),
+                                            Path("/b/c/fractal-adjust/config.toml")]
+    for unset in ("", "only/relative"):
+        monkeypatch.setenv("XDG_CONFIG_DIRS", unset)
+        assert config.system_config_paths() == [Path("/etc/xdg/fractal-adjust/config.toml")]
+    monkeypatch.delenv("XDG_CONFIG_DIRS")
+    assert config.system_config_paths() == [Path("/etc/xdg/fractal-adjust/config.toml")]
+
+
+def test_xdg_precedence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def write(directory: Path, text: str) -> None:
+        (directory / "fractal-adjust").mkdir(parents=True)
+        (directory / "fractal-adjust" / "config.toml").write_text(text)
+    first, second, home = tmp_path / "first", tmp_path / "second", tmp_path / "home"
+    write(second, "[lighting]\non = false\n[mqtt]\nport = 2000\nhost = \"second\"\n")
+    write(first, "[mqtt]\nport = 1000\n")
+    monkeypatch.setenv("XDG_CONFIG_DIRS", f"{first}:{second}")
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(home))
+    cfg = config.load()
+    # The first XDG_CONFIG_DIRS entry wins over later ones; untouched keys come from either.
+    assert cfg.mqtt.port == 1000 and cfg.mqtt.host == "second" and not cfg.light_on
+    write(home, "[lighting]\non = true\n")
+    assert config.load().light_on
+    assert config.config_sources() == [second / "fractal-adjust" / "config.toml",
+                                       first / "fractal-adjust" / "config.toml",
+                                       home / "fractal-adjust" / "config.toml"]
+    assert config.save(config.load()) == home / "fractal-adjust" / "config.toml"
 
 
 def test_save_and_reload(tmp_path: Path) -> None:

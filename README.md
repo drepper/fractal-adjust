@@ -51,7 +51,7 @@ The package installs:
 - the program;
 - a udev rule that gives the logged-in user access to the hub;
 - the desktop entry and icon;
-- the default configuration in `/etc/fractal-adjust/config.toml`;
+- the system-wide default configuration in `/etc/xdg/fractal-adjust/config.toml`;
 - an optional systemd user unit that applies the configuration at login
   (`systemctl --user enable fractal-adjust`).
 
@@ -93,7 +93,8 @@ pages:
   **Store on hub** writes the curves.
 - **Device:** firmware, serial number, connected devices and the MQTT connection state.
 
-**Save** writes the settings shown in the window to `~/.config/fractal-adjust/config.toml`.
+**Save** writes the settings shown in the window to `$XDG_CONFIG_HOME/fractal-adjust/config.toml`
+(normally `~/.config/fractal-adjust/config.toml`).
 They are applied again at the next start.
 
 ### Command line
@@ -140,11 +141,18 @@ port, counted from 0. Brightness and speed range from 0 to 100. A fan curve is a
 
 ## Configuration
 
-The defaults are part of the package (`fractal_adjust/data/config.toml`). The following
-files override individual keys, each one taking precedence over the files before it:
+The defaults are part of the package (`fractal_adjust/data/config.toml`). The configuration
+files follow the [XDG Base Directory specification](https://specifications.freedesktop.org/basedir-spec/latest/).
+Each of the following overrides individual keys, and later files take precedence over earlier
+ones:
 
-1. `/etc/fractal-adjust/config.toml`
-2. `~/.config/fractal-adjust/config.toml`, which the GUI's Save button writes
+1. `fractal-adjust/config.toml` in each directory of `$XDG_CONFIG_DIRS`, which defaults to
+   `/etc/xdg`. When several directories are listed, the first one takes precedence.
+2. `$XDG_CONFIG_HOME/fractal-adjust/config.toml`. `XDG_CONFIG_HOME` defaults to `~/.config`.
+   This is the file the GUI's Save button writes.
+
+As the specification requires, an unset or empty variable, or one holding a relative path,
+falls back to the default. `-c FILE` replaces both with a single file.
 
 ```toml
 [lighting]

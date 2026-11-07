@@ -8,8 +8,10 @@ connect to a broker.
 ## Setup
 
 MQTT is configured in the `[mqtt]` section of the configuration file. The GUI's Save button
-writes `~/.config/fractal-adjust/config.toml`, and settings missing there fall back to
-`/etc/fractal-adjust/config.toml` and the packaged defaults.
+writes `$XDG_CONFIG_HOME/fractal-adjust/config.toml` (normally
+`~/.config/fractal-adjust/config.toml`). Settings missing there fall back to the system-wide
+files in `$XDG_CONFIG_DIRS` (normally `/etc/xdg/fractal-adjust/config.toml`) and then to the
+packaged defaults.
 
 ```toml
 [mqtt]

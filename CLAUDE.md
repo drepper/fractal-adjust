@@ -37,8 +37,10 @@ documented in `MQTT.md`; update it when `remote.HANDLERS` or a handler's paramet
   sends the result per sub-device. Legacy sub-devices (0 LEDs) are skipped because they reject
   effects.
 - `config.py`: the packaged `fractal_adjust/data/config.toml` is the single source of defaults.
-  `/etc/fractal-adjust/config.toml` and then `~/.config/fractal-adjust/config.toml` are
-  deep-merged over it. `dump()` writes a commented TOML file, and the GUI's Save uses it.
+  The XDG files are deep-merged over it: `fractal-adjust/config.toml` in each
+  `$XDG_CONFIG_DIRS` entry (default `/etc/xdg`), with the first entry winning, and then
+  `$XDG_CONFIG_HOME` (default `~/.config`). Relative or empty values are ignored, as the XDG
+  spec requires (`config_sources()`). Tests isolate both variables with an autouse fixture. `dump()` writes a commented TOML file, and the GUI's Save uses it.
   `apply()` writes effects and curves only when they differ from the hub's stored state, to
   spare its flash.
 - `gui.py`: all hub I/O runs on one worker thread (`Worker`), and results return via

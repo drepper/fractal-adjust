@@ -200,9 +200,10 @@ def cmd_apply(args: argparse.Namespace) -> None:
 
 def cmd_config(args: argparse.Namespace) -> None:
     """Show where the configuration comes from and the effective settings."""
-    print(f"# user file: {config.user_config_path()}"
-          f"{'' if config.user_config_path().exists() else ' (absent)'}")
-    print(f"# system file: {config.SYSTEM_CONFIG}{'' if config.SYSTEM_CONFIG.exists() else ' (absent)'}")
+    sources = [args.config] if args.config is not None else config.config_sources()
+    print("# defaults: packaged")
+    for source in sources:
+        print(f"# overlaid with: {source}{'' if source.exists() else ' (absent)'}")
     print(config.dump(config.load(args.config)), end="")
 
 

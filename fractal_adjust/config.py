@@ -14,7 +14,9 @@ from typing import Any
 from .effects import BOOT_MODES, REGULAR_MODES, EffectSettings, format_color, metadata, parse_color
 from .hub import PORT_COUNT, Hub, SlotType, SubDevice, validate_curve
 
-SYSTEM_CONFIG = Path("/etc/fractal-adjust/config.toml")
+#: Directory name below the XDG configuration directories.
+CONFIG_SUBDIR = "fractal-adjust"
+CONFIG_FILE = "config.toml"
 
 type Curve = list[tuple[int, int]]
 
@@ -55,10 +57,33 @@ class Config:
     mqtt: MqttSettings = dataclasses.field(default_factory=MqttSettings)
 
 
+def _absolute(value: str) -> Path | None:
+    """An XDG directory entry; the specification makes relative paths invalid."""
+    return Path(value) if value and Path(value).is_absolute() else None
+
+
 def user_config_path() -> Path:
-    """The per-user configuration file that Save writes."""
-    base = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
-    return Path(base) / "fractal-adjust" / "config.toml"
+    """The per-user configuration file that Save writes: $XDG_CONFIG_HOME/fractal-adjust/config.toml.
+
+    XDG_CONFIG_HOME defaults to ~/.config when it is unset, empty or not an absolute path.
+    """
+    base = _absolute(os.environ.get("XDG_CONFIG_HOME", "")) or Path.home() / ".config"
+    return base / CONFIG_SUBDIR / CONFIG_FILE
+
+
+def system_config_paths() -> list[Path]:
+    """System-wide configuration files from $XDG_CONFIG_DIRS, most important first.
+
+    XDG_CONFIG_DIRS is a colon-separated list that defaults to /etc/xdg when it is unset or
+    holds no absolute paths.
+    """
+    dirs = [d for entry in os.environ.get("XDG_CONFIG_DIRS", "").split(":") if (d := _absolute(entry))]
+    return [d / CONFIG_SUBDIR / CONFIG_FILE for d in dirs or [Path("/etc/xdg")]]
+
+
+def config_sources() -> list[Path]:
+    """Files overlaid on the defaults, least important first; later files win."""
+    return [*reversed(system_config_paths()), user_config_path()]
 
 
 def default_text() -> str:
@@ -179,9 +204,9 @@ def _read(path: Path) -> dict[str, Any]:
 
 
 def load(path: Path | None = None) -> Config:
-    """Load the defaults overlaid with @p path, or with the system and user files."""
+    """Load the defaults overlaid with @p path, or with the XDG system and user files."""
     data = tomllib.loads(default_text())
-    sources = [path] if path is not None else [SYSTEM_CONFIG, user_config_path()]
+    sources = [path] if path is not None else config_sources()
     for source in sources:
         if path is not None or source.exists():
             data = _merge(data, _read(source))

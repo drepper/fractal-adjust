@@ -1,8 +1,9 @@
 # Settings for the Fractal Adjust Pro Hub.  fractal-adjust applies them when it starts.
 #
-# This packaged copy holds the defaults.  /etc/fractal-adjust/config.toml and then
-# ~/.config/fractal-adjust/config.toml (written by the GUI's Save button) override
-# individual keys; anything they leave out falls back to the values below.
+# This packaged copy holds the defaults.  fractal-adjust/config.toml in the directories of
+# $XDG_CONFIG_DIRS (default /etc/xdg) and then in $XDG_CONFIG_HOME (default ~/.config,
+# written by the GUI's Save button) override individual keys; anything they leave out falls
+# back to the values below.
 
 [lighting]
 # Switch the LEDs of all devices connected to the hub on (true) or off (false).

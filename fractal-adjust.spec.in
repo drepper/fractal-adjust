@@ -1,7 +1,7 @@
 # Template for the RPM spec file; "make spec" renders it with tools/gen-spec.py, which fills
 # the placeholders from their single sources.  Do not repeat those values here.  The release
 # number exists only in the baserelease line below.
-%global baserelease 2
+%global baserelease 3
 %global app_id @APP_ID@
 %global module @MODULE@
 
@@ -45,7 +45,7 @@ configuration file and applied whenever the program starts.
 %install
 %pyproject_install
 %pyproject_save_files -l %{module}
-install -Dpm 0644 %{module}/data/config.toml %{buildroot}%{_sysconfdir}/%{name}/config.toml
+install -Dpm 0644 %{module}/data/config.toml %{buildroot}%{_sysconfdir}/xdg/%{name}/config.toml
 install -Dpm 0644 data/70-%{name}.rules %{buildroot}%{_udevrulesdir}/70-%{name}.rules
 install -Dpm 0644 %{module}/data/icon.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
 desktop-file-install --dir=%{buildroot}%{_datadir}/applications --set-icon=%{app_id} data/%{name}.desktop
@@ -59,8 +59,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{app_id}.desktop
 %files -f %{pyproject_files}
 %doc README.md PROTOCOL.md MQTT.md
 %{_bindir}/%{name}
-%dir %{_sysconfdir}/%{name}
-%config(noreplace) %{_sysconfdir}/%{name}/config.toml
+%dir %{_sysconfdir}/xdg/%{name}
+%config(noreplace) %{_sysconfdir}/xdg/%{name}/config.toml
 %{_udevrulesdir}/70-%{name}.rules
 %{_datadir}/applications/%{app_id}.desktop
 %{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
@@ -68,6 +68,12 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{app_id}.desktop
 
 %changelog
 * Sat Nov 07 2026 @PACKAGER@ - @VERSION@-@RELEASE@
+- JSON format for MQTT requests and replies
+- Configuration files follow the XDG Base Directory specification; the system-wide
+  file moves to /etc/xdg/fractal-adjust/config.toml
+- README
+
+* Sat Nov 07 2026 @PACKAGER@ - 0.2.0-2
 - Application icon
 
 * Sat Nov 07 2026 @PACKAGER@ - 0.2.0-1
