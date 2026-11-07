@@ -1,34 +1,20 @@
-"""Command line interface; without a command the GUI starts.
-
-The same parser handles requests that arrive over MQTT while the GUI runs (see
-execute_request): those run on the GUI's hub thread, write their output into a buffer that is
-published as the reply, and are limited to commands that operate the hub.
-"""
+"""Command line interface; without a command the GUI starts."""
 from __future__ import annotations
 
 import argparse
-import concurrent.futures
-import contextlib
 import dataclasses
-import io
 import json
-import shlex
 import sys
 import time
 from collections.abc import Callable, Iterator, Sequence
 from pathlib import Path
-from typing import IO, Any, NoReturn
+from typing import IO, Any
 
 from . import __version__, config
 from .effects import (BOOT_MODES, MODES, PREVIEW_PRESET, REGULAR_MODES, EffectSettings, format_color,
                       parse_color, settings_from_metadata)
 from .hub import (DEFAULT_TIMEOUT, MAX_EFFECT_SLOT, PORT_COUNT, VENDOR_ID, Hub, HubError, PortStatus,
                   SlotType, check_port, find_hubs, open_hub, validate_curve)
-from .service import HubService
-
-#: Commands accepted as MQTT requests.  None of them writes the configuration file.
-REQUEST_COMMANDS = frozenset({"info", "status", "devices", "effects", "effect", "curve", "set-curve",
-                              "light", "slot", "apply"})
 
 
 def parse_curve(text: str) -> list[tuple[int, int]]:
@@ -51,15 +37,13 @@ def parse_ports(text: str) -> list[int]:
     return ports
 
 
-def _open(args: argparse.Namespace) -> contextlib.AbstractContextManager[Hub]:
-    """The hub already provided by a long-running front end, or the one selected by the options."""
-    if args.hub is not None:
-        return contextlib.nullcontext(args.hub)
+def _open(args: argparse.Namespace) -> Hub:
+    """Open the hub selected by the options."""
     return open_hub(args.device, args.serial, args.timeout)
 
 
 def _out(args: argparse.Namespace) -> IO[str]:
-    """Where command output goes: stdout, or the reply buffer of an MQTT request."""
+    """Where command output goes."""
     out: IO[str] = args.out
     return out
 
@@ -194,17 +178,11 @@ def cmd_effect(args: argparse.Namespace) -> None:
     timeout: float | None = args.effect_timeout
     if timeout is not None and settings.info.boot:
         raise ValueError("boot effects cannot be shown temporarily")
-    service: HubService | None = args.service
     with _open(args) as hub:
         targets = [d for d in hub.subdevices(details=False) if not args.ids or d.id in args.ids]
         if timeout is None:
             hub.upload_effect(settings, boot=settings.info.boot, subdevices=targets)
-            if service is not None:
-                service.stored_effect_changed(hub)
             print(f"stored {_describe(settings)}", file=_out(args))
-        elif service is not None:
-            service.show_temporary(hub, settings, args.ids, timeout)
-            print(f"showing {_describe(settings)} for {timeout:g} s", file=_out(args))
         else:
             hub.upload_effect(settings, preview=True, subdevices=targets)
             try:
@@ -360,74 +338,10 @@ def build_parser(parser_class: type[argparse.ArgumentParser] = argparse.Argument
     return parser
 
 
-class RequestError(Exception):
-    """An MQTT request could not be parsed or is not allowed."""
-
-
-class _RequestParser(argparse.ArgumentParser):
-    """ArgumentParser that raises instead of printing and exiting."""
-
-    def error(self, message: str) -> NoReturn:
-        raise RequestError(message)
-
-    def exit(self, status: int = 0, message: str | None = None) -> NoReturn:
-        raise RequestError((message or "").strip())
-
-    def _print_message(self, message: str, file: Any = None) -> None:
-        raise RequestError(message.strip())
-
-
-def parse_request(text: str) -> argparse.Namespace:
-    """Parse an MQTT request, a command line such as "effect blink #ff0000 --timeout 30"."""
-    try:
-        tokens = shlex.split(text)
-    except ValueError as e:
-        raise RequestError(f"malformed request: {e}") from e
-    if not tokens:
-        raise RequestError("empty request")
-    args = build_parser(_RequestParser).parse_args(tokens)
-    if args.command not in REQUEST_COMMANDS:
-        raise RequestError(f"command {args.command!r} is not accepted over MQTT; "
-                           f"allowed: {', '.join(sorted(REQUEST_COMMANDS))}")
-    if args.device is not None or args.serial is not None or args.config is not None \
-            or args.timeout != DEFAULT_TIMEOUT or args.no_apply or args.minimized:
-        raise RequestError("only --json is accepted before the command")
-    if args.command == "status" and args.watch is not None:
-        raise RequestError("status --watch is not available over MQTT")
-    return args
-
-
-def execute_request(service: HubService, text: str,
-                    config_path: Path | None = None) -> concurrent.futures.Future[str]:
-    """Run an MQTT request on the service's hub thread; the future yields the reply text.
-
-    @p config_path is the configuration file that "apply" reads.  Requests never write it.
-    """
-    try:
-        args = parse_request(text)
-    except RequestError as e:
-        failed: concurrent.futures.Future[str] = concurrent.futures.Future()
-        failed.set_result(f"error: {e}")
-        return failed
-    out = io.StringIO()
-    args.out, args.config, args.service = out, config_path, service
-
-    def job(hub: Hub) -> str:
-        args.hub = hub
-        try:
-            args.func(args)
-        except (HubError, ValueError, config.ConfigError) as e:
-            if isinstance(e, HubError) and "failed:" in str(e):
-                service.drop()
-            return out.getvalue() + f"error: {e}"
-        return out.getvalue().rstrip("\n") or "ok"
-    return service.submit(job)
-
-
 def main(argv: Sequence[str] | None = None) -> int:
     """Program entry point."""
     args = build_parser().parse_args(argv)
-    args.out, args.hub, args.service = sys.stdout, None, None
+    args.out = sys.stdout
     try:
         args.func(args)
     except (HubError, ValueError, config.ConfigError) as e:

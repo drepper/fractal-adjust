@@ -22,7 +22,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402  # pyright: ignore[reportAttributeAccessIssue]
 
-from . import __version__, config  # noqa: E402
+from . import __version__, config, remote  # noqa: E402
 from .effects import BOOT_MODES, MODES, REGULAR_MODES, EffectSettings, Rgb  # noqa: E402
 from .hub import MAX_CURVE_POINTS, PORT_COUNT, Hub, HubError, PortStatus, SubDevice, open_hub  # noqa: E402
 from .mqtt import MqttBridge, MqttError  # noqa: E402
@@ -531,10 +531,8 @@ class MainWindow(Adw.ApplicationWindow):
         settings = self._saved.mqtt
         if self._bridge is not None or not settings.enabled:
             return
-        from .cli import execute_request
-
-        def handle(text: str) -> concurrent.futures.Future[str]:
-            return execute_request(self._worker.service, text, self._config_path)
+        def handle(payload: bytes) -> concurrent.futures.Future[str]:
+            return remote.execute(self._worker.service, payload, self._config_path)
 
         def state(text: str) -> None:
             GLib.idle_add(lambda: (self._mqtt_row.set_subtitle(text), GLib.SOURCE_REMOVE)[1])

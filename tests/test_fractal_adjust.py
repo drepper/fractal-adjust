@@ -5,6 +5,7 @@ import random
 import sys
 import tomllib
 from collections import deque
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -386,9 +387,10 @@ def test_gui_option_defaults() -> None:
     assert cli.build_parser().parse_args(["--no-apply", "gui"]).no_apply
 
 
-# MQTT requests and timed effects.
+# MQTT requests (JSON) and timed effects.
 
-from fractal_adjust import service as svc  # noqa: E402
+from fractal_adjust import remote, service as svc  # noqa: E402
+import json  # noqa: E402
 import time  # noqa: E402
 
 
@@ -401,49 +403,87 @@ def headers(hub: fa.Hub) -> list[bytes]:
     return [p for p in payloads(hub) if p[:2] == bytes.fromhex("a411")]
 
 
-@pytest.mark.parametrize("text", [
-    "", "gui", "raw a4 08", "config", "list", "-d /dev/hidraw0 status", "--config /tmp/x apply",
-    "status --watch 1", "effect sparkle", "effect blink --timeout 0", "light maybe", "--help",
-    "effect --help", "--version", "'unterminated", "--minimized status", "--no-apply light on",
+def request(service: svc.HubService, obj: object) -> Any:
+    payload = obj if isinstance(obj, bytes) else json.dumps(obj).encode()
+    return json.loads(remote.execute(service, payload).result(2))
+
+
+@pytest.fixture
+def service() -> Iterator[svc.HubService]:
+    s, _ = make_service()
+    yield s
+    s.shutdown()
+
+
+@pytest.mark.parametrize("payload, message", [
+    (b"status", "not valid JSON"),
+    (b"\xff", "not UTF-8"),
+    (b"[1, 2]", "JSON object"),
+    (b"{}", "missing \"command\""),
+    (b'{"command": "raw"}', "unknown command"),
+    (b'{"command": "gui"}', "unknown command"),
+    (b'{"command": "status", "watch": 1}', "unknown parameters: watch"),
+    (b'{"command": "effect", "mode": "sparkle"}', "unknown mode"),
+    (b'{"command": "effect"}', "missing parameter 'mode'"),
+    (b'{"command": "effect", "mode": "blink", "timeout": 0}', "positive number"),
+    (b'{"command": "effect", "mode": "blink", "colors": ["red"]}', "colors"),
+    (b'{"command": "effect", "mode": "still", "brightness": 300}', "brightness"),
+    (b'{"command": "effect", "mode": "meshify", "timeout": 5}', "boot effects"),
+    (b'{"command": "light", "on": "yes"}', "true or false"),
+    (b'{"command": "light"}', "missing parameter 'on'"),
+    (b'{"command": "slot", "slot": 7}', "between 0 and 3"),
+    (b'{"command": "set-curve", "ports": [1], "points": [[0, 0], [50, 50]]}', "x=100"),
+    (b'{"command": "set-curve", "ports": [9], "points": [[0, 0], [100, 100]]}', "ports"),
+    (b'{"command": "curve", "ports": [1], "id": [1]}', "id must be"),
 ])
-def test_rejected_requests(text: str) -> None:
-    with pytest.raises(cli.RequestError):
-        cli.parse_request(text)
+def test_rejected_requests(service: svc.HubService, payload: bytes, message: str) -> None:
+    reply = request(service, payload)
+    assert reply["ok"] is False and message in reply["error"]
+    assert "result" not in reply
 
 
-def test_accepted_requests() -> None:
-    args = cli.parse_request("effect blink #ff0000 --timeout 2.5")
-    assert args.func is cli.cmd_effect and args.effect_timeout == 2.5 and args.colors == [(255, 0, 0)]
-    assert cli.parse_request("--json status").json
-    assert cli.parse_request("light off 01 02").ids == [1, 2]
-    assert cli.parse_request("effect still #00ff00 --preview 3").effect_timeout == 3
+def test_reply_structure(service: svc.HubService) -> None:
+    reply = request(service, {"id": "abc", "command": "status"})
+    assert reply["id"] == "abc" and reply["command"] == "status" and reply["ok"] is True
+    assert reply["result"][0] == {"port": "mobo", "duty": 35, "rpm": None, "state": 0}
+    assert reply["result"][1]["rpm"] == 575
+    assert request(service, {"command": "info"})["id"] is None
+    assert request(service, {"id": 7, "command": "curve", "ports": [1]})["result"] == [
+        {"port": 1, "profile": 1, "points": [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]}]
+    devices = request(service, {"command": "devices"})["result"]
+    assert devices[2] == {"id": 0x11, "port": 2, "led_count": 0, "argb_version": "ARGB1", "type_name": "Fan",
+                          "name": "", "id_hex": "0x11"}
+    effects_reply = request(service, {"command": "effects"})["result"]
+    assert effects_reply[0]["effect"]["mode"] == "shift" and effects_reply[0]["boot"]["mode"] == "meshify"
+    assert effects_reply[0]["temporary"] is False
 
 
-def test_execute_request_replies() -> None:
+def test_commands_reach_the_hub() -> None:
     service, hub = make_service()
     try:
-        assert cli.execute_request(service, "light off").result(2) == "LEDs off"
+        assert request(service, {"command": "light", "on": False})["result"] == {"on": False, "ids": [1, 2, 0x11]}
         assert payloads(hub)[-1] == bytes.fromhex("a40c 00 03 010211")
-        assert cli.execute_request(service, "curve 1").result(2).startswith("port 1  profile 1  0:0")
-        assert cli.execute_request(service, "raw a4 08").result(2).startswith("error: command 'raw'")
-        assert "error:" in cli.execute_request(service, "set-curve 1 0:0,50:50").result(2)
-        reply = cli.execute_request(service, "--json status").result(2)
-        assert json_loads(reply)[1]["rpm"] == 575
+        assert request(service, {"command": "light", "on": True, "ids": ["0x02", 1]})["result"]["ids"] == [2, 1]
+        assert request(service, {"command": "slot", "slot": 2})["ok"]
+        reply = request(service, {"command": "set-curve", "ports": [3], "points": [[0, 30], [100, 100]], "profile": 4})
+        assert reply["ok"] and bytes.fromhex("d103 02 04 02 001e 6464") in payloads(hub)
+        reply = request(service, {"command": "effect", "mode": "breathe", "colors": ["#ff0000", "#0000ff"],
+                                  "speed": 30, "ids": [1]})
+        assert reply["result"] == {"effect": {"mode": "breathe", "speed": 30, "brightness": 100,
+                                              "colors": ["#ff0000", "#0000ff"]},
+                                   "boot": False, "stored": True, "timeout": None, "ids": [1]}
+        assert bytes.fromhex("a413") in payloads(hub)
     finally:
         service.shutdown()
-
-
-def json_loads(text: str) -> Any:
-    import json
-    return json.loads(text)
 
 
 def test_request_never_writes_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     service, _ = make_service()
     try:
-        for text in ("effect still #ff0000", "light off", "set-curve 2 0:10,100:100", "apply"):
-            assert not cli.execute_request(service, text).result(2).startswith("error")
+        for obj in ({"command": "effect", "mode": "still", "colors": ["#ff0000"]}, {"command": "light", "on": False},
+                    {"command": "set-curve", "ports": [2], "points": [[0, 10], [100, 100]]}, {"command": "apply"}):
+            assert request(service, obj)["ok"]
     finally:
         service.shutdown()
     assert list(tmp_path.iterdir()) == []
@@ -452,8 +492,9 @@ def test_request_never_writes_config(tmp_path: Path, monkeypatch: pytest.MonkeyP
 def test_timed_effect_returns_to_previous() -> None:
     service, hub = make_service()
     try:
-        assert cli.execute_request(service, "effect still #ff0000 --timeout 0.4").result(2).startswith("showing")
-        assert cli.execute_request(service, "effect blink #00ff00 --timeout 0.1").result(2).startswith("showing")
+        first = request(service, {"command": "effect", "mode": "still", "colors": ["#ff0000"], "timeout": 0.4})
+        assert first["result"]["stored"] is False and first["result"]["timeout"] == 0.4
+        assert request(service, {"command": "effect", "mode": "blink", "colors": ["#00ff00"], "timeout": 0.1})["ok"]
         assert service.submit_plain(lambda: service.temporary_count).result(2) == 2
         stacked = len(headers(hub))
         time.sleep(0.25)
@@ -471,20 +512,23 @@ def test_timed_effect_returns_to_previous() -> None:
         service.shutdown()
 
 
-def test_boot_effect_cannot_be_timed() -> None:
-    service, _ = make_service()
-    try:
-        assert cli.execute_request(service, "effect meshify #ffffff --timeout 5").result(2).startswith("error")
-    finally:
-        service.shutdown()
-
-
 def test_shutdown_cancels_timed_effects() -> None:
     service, hub = make_service()
-    cli.execute_request(service, "effect still #ff0000 --timeout 60").result(2)
+    request(service, {"command": "effect", "mode": "still", "colors": ["#ff0000"], "timeout": 60})
     service.shutdown()
     assert headers(hub)[-1][7] == 0
     assert isinstance(hub._transport, FakeTransport) and hub._transport.closed
+
+
+def test_missing_hub_is_reported() -> None:
+    def no_hub() -> fa.Hub:
+        raise fa.HubError("no Fractal Adjust Pro Hub found")
+    service = svc.HubService(no_hub)
+    try:
+        reply = json.loads(remote.execute(service, b'{"id": 1, "command": "status"}').result(2))
+        assert reply == {"id": 1, "command": "status", "ok": False, "error": "no Fractal Adjust Pro Hub found"}
+    finally:
+        service.shutdown()
 
 
 def test_mqtt_config(tmp_path: Path) -> None:

@@ -28,7 +28,7 @@ This is an independent project, not affiliated with or supported by Fractal Desi
 - **Configuration file** (TOML) that is applied whenever the program starts. Only settings
   that differ from the hub's state are written, which spares the hub's flash memory.
 - **Command line interface** for scripting, with JSON output.
-- **MQTT remote control** while the GUI runs: requests use the CLI syntax; see
+- **MQTT remote control** while the GUI runs, with JSON requests and replies; see
   [`MQTT.md`](MQTT.md).
 
 ## Requirements
@@ -176,9 +176,15 @@ MQTT password, Save writes it readable only by its owner.
 ## MQTT
 
 When `[mqtt] enabled = true`, the running GUI subscribes to the configured topic. Each message
-is a command line as for the CLI, for example `light off` or
-`effect blink #ff0000 --timeout 30`. The output is published to `<topic>/reply`. Requests never
-change the configuration file.
+is a JSON object naming a command and its parameters, for example:
+
+```json
+{"id": 1, "command": "effect", "mode": "blink", "colors": ["#ff0000"], "timeout": 30}
+```
+
+The reply is published to `<topic>/reply` as JSON: `{"id": 1, "command": "effect", "ok": true,
+"result": {...}}`, or `"ok": false` with an `"error"` message. The commands are the hub
+commands of the CLI. Requests never change the configuration file.
 
 Anyone who can publish to the topic controls the hub, so restrict access on the broker.
 [`MQTT.md`](MQTT.md) has the details.
@@ -223,6 +229,7 @@ Every packaging value has exactly one source:
 | `fractal_adjust/config.py` | configuration loading, saving and applying |
 | `fractal_adjust/service.py` | single hub thread and timed effects for the GUI and MQTT |
 | `fractal_adjust/mqtt.py` | MQTT bridge |
+| `fractal_adjust/remote.py` | JSON request handling for MQTT |
 | `fractal_adjust/cli.py`, `gui.py` | user interfaces |
 | `PROTOCOL.md`, `MQTT.md` | protocol and MQTT documentation |
 

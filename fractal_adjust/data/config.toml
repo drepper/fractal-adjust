@@ -38,10 +38,10 @@ port2 = [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]
 port3 = [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]
 port4 = [[0, 0], [20, 20], [40, 40], [60, 60], [80, 80], [100, 100]]
 
-# MQTT: messages published to <topic> are command lines like those of the CLI, e.g.
-# "light off", "status" or "effect blink #ff0000 --timeout 30".  The output goes to
-# reply_topic (empty: "<topic>/reply").  Requests never change this file.
-# Requests are served while the GUI runs and enabled is true.
+# MQTT: requests published to <topic> are JSON objects such as
+# {"id": 1, "command": "effect", "mode": "blink", "colors": ["#ff0000"], "timeout": 30}.
+# JSON replies go to reply_topic (empty: "<topic>/reply"); see MQTT.md.  Requests never
+# change this file.  They are served while the GUI runs and enabled is true.
 [mqtt]
 enabled = false
 host = "localhost"

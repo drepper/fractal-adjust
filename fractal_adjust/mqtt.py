@@ -1,14 +1,15 @@
-"""MQTT bridge: receive command-line requests on a topic and publish the replies."""
+"""MQTT bridge: receive JSON requests on a topic and publish the JSON replies (see MQTT.md)."""
 from __future__ import annotations
 
 import concurrent.futures
+import json
 from collections.abc import Callable
 from typing import Any
 
 from .config import MqttSettings
 
-#: Takes a request (a command line) and returns a future with the text to publish as reply.
-type RequestHandler = Callable[[str], concurrent.futures.Future[str]]
+#: Takes a request payload and returns a future with the JSON text to publish as reply.
+type RequestHandler = Callable[[bytes], concurrent.futures.Future[str]]
 
 
 class MqttError(Exception):
@@ -74,14 +75,13 @@ class MqttBridge:
         self._on_state(f"disconnected ({reason}), retrying")
 
     def _message(self, _client: Any, _userdata: Any, message: Any) -> None:
-        try:
-            request = message.payload.decode("utf-8")
-        except UnicodeDecodeError:
-            self.reply("error: request is not UTF-8 text")
-            return
-        future = self._handler(request)
-        future.add_done_callback(lambda f: self.reply(f.result() if f.exception() is None
-                                                      else f"error: {f.exception()}"))
+        future = self._handler(bytes(message.payload))
+
+        def done(f: concurrent.futures.Future[str]) -> None:
+            error = f.exception()
+            self.reply(f.result() if error is None
+                       else json.dumps({"id": None, "ok": False, "error": str(error)}))
+        future.add_done_callback(done)
 
     def reply(self, text: str) -> None:
         """Publish @p text on the reply topic."""

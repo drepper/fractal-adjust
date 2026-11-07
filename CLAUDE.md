@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Linux `/dev/hidrawN`. Without a command it starts a GTK 4/libadwaita GUI; there is also a CLI.
 The wire protocol was reverse-engineered from Fractal's WebHID app and is documented in
 `PROTOCOL.md`. Keep that file in sync when adding commands. The MQTT request interface is
-documented in `MQTT.md`; update it when CLI commands or `REQUEST_COMMANDS` change.
+documented in `MQTT.md`; update it when `remote.HANDLERS` or a handler's parameters change.
 
 ## Commands
 
@@ -48,10 +48,11 @@ documented in `MQTT.md`; update it when CLI commands or `REQUEST_COMMANDS` chang
 - `service.py`: `HubService` owns the single hub thread used by the GUI and MQTT, and the
   stack of timed effects (`effect --timeout`). These are non-persistent previews; when one
   expires, the remaining ones are replayed or the preview is cancelled.
-- `mqtt.py` + `cli.parse_request`/`execute_request`: only the GUI serves MQTT, and only when
-  `[mqtt] enabled`. A request is a CLI command line parsed by the same argparse tree, limited
-  to `REQUEST_COMMANDS`; its output goes to the reply topic. Requests never write the config.
-  CLI commands print to `args.out` and use `args.hub` when a front end supplies one.
+- `mqtt.py` + `remote.py`: only the GUI serves MQTT, and only when `[mqtt] enabled`. A request
+  is a JSON object (`command`, optional `id`, parameters as members). `remote.HANDLERS` maps
+  commands to handlers that call the hub layer directly and return JSON-serializable results.
+  `Params` rejects wrong types and unknown members. The reply is
+  `{"id", "command", "ok", "result" | "error"}`. Requests never write the config.
 - `A4 05` reads the *active* effect, a running preview included (preset `0x99`).
 - User-facing ports are 1-based and the wire uses 0-based. The device brightness byte is half
   the 0–100 UI value.

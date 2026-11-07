@@ -243,9 +243,9 @@ def dump(cfg: Config) -> str:
         *(f"port{port} = [" + ", ".join(f"[{x}, {y}]" for x, y in pts) + "]"
           for port, pts in cfg.fan_curves.items()),
         "",
-        "# MQTT: messages on <topic> are command lines as for the CLI (e.g. \"light off\" or",
-        "# \"effect blink #ff0000 --timeout 30\"); the output is published to reply_topic",
-        "# (empty: \"<topic>/reply\").  Served by the GUI while enabled is true.",
+        "# MQTT: requests on <topic> are JSON objects such as {\"command\": \"light\", \"on\": false};",
+        "# JSON replies go to reply_topic (empty: \"<topic>/reply\").  Served by the GUI while",
+        "# enabled is true.",
         "[mqtt]",
         *(f"{f.name} = {_toml_scalar(getattr(cfg.mqtt, f.name))}" for f in dataclasses.fields(MqttSettings)),
     ]
